@@ -33,7 +33,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Python Febraban",
     author_email='python-febraban@python.org.br',
-    url='https://github.com/mileo/febraban',
+    url='https://github.com/python-febraban/febraban',
     packages=find_packages(include=['febraban']),
     entry_points={
         'console_scripts': [

@@ -6,15 +6,15 @@ Python Febraban
 .. image:: https://img.shields.io/pypi/v/febraban.svg
         :target: https://pypi.python.org/pypi/febraban
 
-.. image:: https://img.shields.io/travis/mileo/febraban.svg
-        :target: https://travis-ci.org/mileo/febraban
+.. image:: https://img.shields.io/travis/python-febraban/febraban.svg
+        :target: https://travis-ci.org/python-febraban/febraban
 
 .. image:: https://readthedocs.org/projects/febraban/badge/?version=latest
         :target: https://febraban.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/mileo/febraban/shield.svg
-     :target: https://pyup.io/repos/github/mileo/febraban/
+.. image:: https://pyup.io/repos/github/python-febraban/febraban/shield.svg
+     :target: https://pyup.io/repos/github/python-febraban/febraban/
      :alt: Updates
 
 
