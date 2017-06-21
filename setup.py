@@ -29,7 +29,7 @@ test_requirements = [
 setup(
     name='febraban',
     version='0.1.0',
-    description="Implementação do framework canb em python",
+    description="Implementação do framework cnab em python",
     long_description=readme + '\n\n' + history,
     author="Python Febraban",
     author_email='python-febraban@python.org.br',

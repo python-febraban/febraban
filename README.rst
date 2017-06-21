@@ -18,7 +18,7 @@ Python Febraban
      :alt: Updates
 
 
-Implementação do framework canb em python
+Implementação do framework cnab em python
 
 
 * Free software: GNU General Public License v3
