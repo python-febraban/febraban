@@ -36,14 +36,14 @@ class Bradesco240(Cnab240):
         from cnab240.bancos import bradesco
         self.bank = bradesco
 
-    def _prepare_header(self):
+    def _prepare_header(self, **kwargs):
         """
 
         :param order:
         :return:
         """
 
-        vals = super(Bradesco240, self)._prepare_header()
+        vals = super(Bradesco240, self)._prepare_header(**kwargs)
         vals['servico_servico'] = 1
         return vals
 
