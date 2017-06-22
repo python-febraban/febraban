@@ -63,14 +63,6 @@ class Cnab240(Cnab):
         else:
             return Cnab240
 
-    @property
-    def inscricao_tipo(self):
-        # TODO: Implementar codigo para PIS/PASEP
-        if self.order.company_id.partner_id.is_company:
-            return 2
-        else:
-            return 1
-
     def _prepare_header(self):
         """
 
@@ -99,34 +91,10 @@ class Cnab240(Cnab):
             'nome_banco': unicode(self.order.mode.bank_id.bank_name),
         }
 
-    def get_file_numeration(self):
-        numero = self.order.get_next_number()
-        if not numero:
-            numero = 1
-        return numero
-
-    def format_date(self, srt_date):
-        return int(datetime.datetime.strptime(
-            srt_date, '%Y-%m-%d').strftime('%d%m%Y'))
 
     def nosso_numero(self, format):
         pass
 
-    def cep(self, format):
-        sulfixo = format[-3:]
-        prefixo = format[:5]
-        return prefixo, sulfixo
-
-    def sacado_inscricao_tipo(self, partner_id):
-        # TODO: Implementar codigo para PIS/PASEP
-        if partner_id.is_company:
-            return 2
-        else:
-            return 1
-
-    def rmchar(self, format):
-        return re.sub('[%s]' % re.escape(string.punctuation), '',
-                      format or '')
 
     def _prepare_segmento(self, line):
         """
@@ -224,9 +192,3 @@ class Cnab240(Cnab):
         remessa = unicode(self.arquivo)
         return unicodedata.normalize(
             'NFKD', remessa).encode('ascii', 'ignore')
-
-    def data_hoje(self):
-        return (int(time.strftime("%d%m%Y")))
-
-    def hora_agora(self):
-        return (int(time.strftime("%H%M%S")))
