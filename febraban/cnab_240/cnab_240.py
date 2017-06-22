@@ -25,7 +25,6 @@ import datetime
 import logging
 import re
 import string
-import time
 import unicodedata
 from decimal import Decimal
 
@@ -105,17 +104,15 @@ class Cnab240(Cnab):
             'nome_banco': unicode(nome_banco),
         }
 
-
-
     def _prepare_segmento(self, line):
         """
         :param line:
         :return:
         """
-        prefixo, sulfixo = self.cep(line.partner_id.zip)
+        prefixo, sulfixo = self.cep(line.sacado_cep)
 
         aceite = u'N'
-        if not self.order.mode.boleto_aceite == 'S':
+        if not line.aceite == 'S':
             aceite = u'A'
 
         # Código agencia do cedente
@@ -134,51 +131,56 @@ class Cnab240(Cnab):
         # Era cedente_agencia_conta_dv agora é cedente_dv_ag_cc
 
         return {
-            'controle_banco': int(self.order.mode.bank_id.bank_bic),
-            'cedente_agencia': int(self.order.mode.bank_id.bra_number),
-            'cedente_conta': int(self.order.mode.bank_id.acc_number),
-            'cedente_conta_dv': self.order.mode.bank_id.acc_number_dig,
-            'cedente_agencia_dv': self.order.mode.bank_id.bra_number_dig,
-            # DV ag e cc
-            'cedente_dv_ag_cc': (self.order.mode.bank_id.bra_acc_dig),
+            # TODO: Esses dados podem ser de outras filiais e contas
+            # provavelmente, então pode ser que teremos que refazer este
+            # trecho.
+            'controle_banco': self.arquivo.header.controle_banco,
+            'cedente_agencia': self.arquivo.header.cedente_agencia,
+            'cedente_conta': self.arquivo.header.cedente_conta,
+            'cedente_conta_dv': self.arquivo.header.cedente_conta_dv,
+            'cedente_agencia_dv': self.arquivo.header.cedente_agencia_dv,
+            'cedente_dv_ag_cc': self.arquivo.header.cedente_dv_ag_cc,
             'identificacao_titulo': u'0000000',  # TODO
             'identificacao_titulo_banco': u'0000000',  # TODO
-            'identificacao_titulo_empresa': line.move_line_id.move_id.name,
-            'numero_documento': line.name,
+            'identificacao_titulo_empresa': line.nosso_numero,
+            'numero_documento': line.numero_documento,
             'vencimento_titulo': self.format_date(
-                line.ml_maturity_date),
-            'valor_titulo': Decimal(str(line.amount_currency)).quantize(
+                line.data_vencimento
+            ),
+            'valor_titulo': Decimal(line.valor_documento).quantize(
                 Decimal('1.00')),
             # TODO: Código adotado para identificar o título de cobrança.
             # 8 é Nota de cŕedito comercial
-            'especie_titulo': int(self.order.mode.boleto_especie),
+            'especie_titulo': 8,  # FIXME
+                #int(self.order.mode.boleto_especie),
             'aceite_titulo': aceite,
             'data_emissao_titulo': self.format_date(
-                line.ml_date_created),
+                line.data_documento),
             # TODO: trazer taxa de juros do Odoo. Depende do valor do 27.3P
             # CEF/FEBRABAN e Itaú não tem.
             'juros_mora_data': self.format_date(
-                line.ml_maturity_date),
-            'juros_mora_taxa_dia': Decimal('0.00'),
-            'valor_abatimento': Decimal('0.00'),
+                line.data_vencimento),  # FIXME
+            'juros_mora_taxa_dia': Decimal('0.00'),  # FIXME
+            'valor_abatimento': Decimal('0.00'),  # FIXME
             'sacado_inscricao_tipo': int(
-                self.sacado_inscricao_tipo(line.partner_id)),
+                self.inscricao_tipo(line.sacado_documento)),
             'sacado_inscricao_numero': int(
                 self.punctuation_rm(line.sacado_documento)),
-            'sacado_nome': line.partner_id.legal_name,
-            'sacado_endereco': (
-                line.partner_id.street + ' ' + line.partner_id.number),
-            'sacado_bairro': line.partner_id.district,
+            'sacado_nome': line.sacado_nome,
+            'sacado_endereco': line.sacado_endereco,
+            'sacado_bairro': line.sacado_bairro,
             'sacado_cep': int(prefixo),
             'sacado_cep_sufixo': int(sulfixo),
-            'sacado_cidade': line.partner_id.l10n_br_city_id.name,
-            'sacado_uf': line.partner_id.state_id.code,
-            'codigo_protesto': int(self.order.mode.boleto_protesto),
-            'prazo_protesto': int(self.order.mode.boleto_protesto_prazo),
+            'sacado_cidade': line.sacado_cidade,
+            'sacado_uf': line.sacado_uf,
+            'codigo_protesto': 1,
+                #int(self.order.mode.boleto_protesto),
+            'prazo_protesto':  1,
+                #int(self.order.mode.boleto_protesto_prazo),
             'codigo_baixa': 2,
             'prazo_baixa': 0,  # De 5 a 120 dias.
             'controlecob_data_gravacao': self.data_hoje(),
-            'cobranca_carteira': int(self.order.mode.boleto_carteira),
+            'cobranca_carteira': int(line.carteira),
         }
 
     def remessa(self, header, lista_boletos):
@@ -188,14 +190,15 @@ class Cnab240(Cnab):
 
         :return:
         """
-        cobrancasimples_valor_titulos = 0
+        cobrancasimples_valor_titulos = Decimal(0.00)
 
         self.arquivo = Arquivo(self.bank, **self._prepare_header(**header))
         for line in lista_boletos:
             self.arquivo.incluir_cobranca(**self._prepare_segmento(line))
             self.arquivo.lotes[0].header.servico_servico = 1
             # TODO: tratar soma de tipos de cobranca
-            cobrancasimples_valor_titulos += line.amount_currency
+            # TODO: Verificar se é o valor do documento ou o valor
+            cobrancasimples_valor_titulos += Decimal(line.valor_documento)
             self.arquivo.lotes[0].trailer.cobrancasimples_valor_titulos = \
                 Decimal(cobrancasimples_valor_titulos).quantize(
                     Decimal('1.00'))
