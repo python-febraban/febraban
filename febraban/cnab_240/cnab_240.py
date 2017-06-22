@@ -63,35 +63,46 @@ class Cnab240(Cnab):
         else:
             return Cnab240
 
-    def _prepare_header(self):
     def nosso_numero(self, format):
         return format
 
+    def _prepare_header(
+        self, arquivo_codigo, controle_banco,
+        cedente_agencia, cedente_agencia_dv,
+        cedente_conta, cedente_conta_dv, cedente_dv_ag_cc,
+        cedente_inscricao_numero, cedente_inscricao_tipo,
+        cedente_nome, nome_banco, servico_operacao, arquivo_sequencia,
+        arquivo_data_de_geracao=False,
+        arquivo_hora_de_geracao=False,
+        **kwargs):
         """
 
         :param:
         :return:
         """
         return {
-            'controle_banco': int(self.order.mode.bank_id.bank_bic),
-            'arquivo_data_de_geracao': self.data_hoje(),
-            'arquivo_hora_de_geracao': self.hora_agora(),
+            'controle_banco': controle_banco,
+            'arquivo_data_de_geracao':
+                arquivo_data_de_geracao or self.data_hoje(),
+            'arquivo_hora_de_geracao':
+                arquivo_hora_de_geracao or self.hora_agora(),
             # TODO: Número sequencial de arquivo
-            'arquivo_sequencia': int(self.get_file_numeration()),
-            'cedente_inscricao_tipo': self.inscricao_tipo,
+            'arquivo_sequencia': int(arquivo_sequencia),
+            'cedente_inscricao_tipo': int(self.inscricao_tipo(
+                cedente_inscricao_numero
+            )),
             'cedente_inscricao_numero':
                 int(self.punctuation_rm(cedente_inscricao_numero)),
-            'cedente_agencia': int(
-                self.order.mode.bank_id.bra_number),
-            'cedente_conta': int(self.order.mode.bank_id.acc_number),
-            'cedente_conta_dv': (self.order.mode.bank_id.acc_number_dig),
-            'cedente_agencia_dv': self.order.mode.bank_id.bra_number_dig,
-            'cedente_nome': self.order.company_id.legal_name,
+            'cedente_agencia': int(cedente_agencia),
+            'cedente_conta': int(cedente_conta),
+            'cedente_conta_dv': cedente_conta_dv,
+            'cedente_agencia_dv': cedente_agencia_dv,
+            'cedente_nome': cedente_nome,
             # DV ag e conta
-            'cedente_dv_ag_cc': (self.order.mode.bank_id.bra_acc_dig),
+            'cedente_dv_ag_cc': cedente_dv_ag_cc,
             'arquivo_codigo': 1,  # Remessa/Retorno
-            'servico_operacao': u'R',
-            'nome_banco': unicode(self.order.mode.bank_id.bank_name),
+            'servico_operacao': unicode(servico_operacao),
+            'nome_banco': unicode(nome_banco),
         }
 
 
@@ -170,17 +181,17 @@ class Cnab240(Cnab):
             'cobranca_carteira': int(self.order.mode.boleto_carteira),
         }
 
-    def remessa(self, order):
+    def remessa(self, header, lista_boletos):
         """
 
         :param order:
+
         :return:
         """
         cobrancasimples_valor_titulos = 0
 
-        self.order = order
-        self.arquivo = Arquivo(self.bank, **self._prepare_header())
-        for line in order.line_ids:
+        self.arquivo = Arquivo(self.bank, **self._prepare_header(**header))
+        for line in lista_boletos:
             self.arquivo.incluir_cobranca(**self._prepare_segmento(line))
             self.arquivo.lotes[0].header.servico_servico = 1
             # TODO: tratar soma de tipos de cobranca
