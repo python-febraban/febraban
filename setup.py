@@ -13,6 +13,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
+    'pyboleto',
+    'cnab240',
     # TODO: put package requirements here
 ]
 
