@@ -107,7 +107,3 @@ class Bradesco400(Cnab400):
         chars_faltantes = num_digitos - len(campo)
         return (u'0' * chars_faltantes) + campo
 
-
-def str_to_unicode(inp_str):
-    inp_str = unicode(inp_str, "utf-8")
-    return inp_str

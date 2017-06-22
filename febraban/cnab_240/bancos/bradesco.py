@@ -77,8 +77,3 @@ class Bradesco240(Cnab240):
         nosso_numero = re.sub(
             '[%s]' % re.escape(string.punctuation), '', format[3:-1] or '')
         return carteira, nosso_numero, digito
-
-
-def str_to_unicode(inp_str):
-    inp_str = unicode(inp_str, "utf-8")
-    return inp_str
