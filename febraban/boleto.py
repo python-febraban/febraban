@@ -57,11 +57,10 @@ class Boleto:
                               u'pagamento')
 
     @staticmethod
-    def getBoletoClass(move_line):
-        bank_code = move_line.payment_mode_id.bank_id.bank.bic
-        return bank.get_class_for_codigo(bank_code)
+    def get_class_for_codigo(banco_codigo):
+        return bank.get_class_for_codigo(banco_codigo)
 
-    def __init__(self, move_line, nosso_numero):
+    def __init__(self, codigo_banco):
         self._cedente(move_line.company_id)
         self._sacado(move_line.partner_id)
         self._move_line(move_line)
