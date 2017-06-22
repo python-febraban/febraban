@@ -64,6 +64,9 @@ class Cnab240(Cnab):
             return Cnab240
 
     def _prepare_header(self):
+    def nosso_numero(self, format):
+        return format
+
         """
 
         :param:
@@ -91,9 +94,6 @@ class Cnab240(Cnab):
             'nome_banco': unicode(self.order.mode.bank_id.bank_name),
         }
 
-
-    def nosso_numero(self, format):
-        pass
 
 
     def _prepare_segmento(self, line):
