@@ -10,6 +10,8 @@ deploy:
   provider: pypi
   user: python-febraban
 install:
+    - sudo locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
+    - sudo dpkg-reconfigure locales
     - pip install -U tox-travis
     - pip install https://github.com/python-febraban/cnab240/archive/master.zip
     - pip install https://github.com/python-febraban/pyboleto/archive/master.zip
