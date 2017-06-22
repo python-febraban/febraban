@@ -29,8 +29,6 @@ import time
 import unicodedata
 from decimal import Decimal
 
-from openerp.addons.l10n_br_base.tools.misc import punctuation_rm
-
 from ..cnab import Cnab
 
 _logger = logging.getLogger(__name__)
@@ -86,8 +84,8 @@ class Cnab240(Cnab):
             # TODO: Número sequencial de arquivo
             'arquivo_sequencia': int(self.get_file_numeration()),
             'cedente_inscricao_tipo': self.inscricao_tipo,
-            'cedente_inscricao_numero': int(punctuation_rm(
-                self.order.company_id.cnpj_cpf)),
+            'cedente_inscricao_numero':
+                int(self.punctuation_rm(cedente_inscricao_numero)),
             'cedente_agencia': int(
                 self.order.mode.bank_id.bra_number),
             'cedente_conta': int(self.order.mode.bank_id.acc_number),
@@ -187,7 +185,7 @@ class Cnab240(Cnab):
             'sacado_inscricao_tipo': int(
                 self.sacado_inscricao_tipo(line.partner_id)),
             'sacado_inscricao_numero': int(
-                self.rmchar(line.partner_id.cnpj_cpf)),
+                self.punctuation_rm(line.sacado_documento)),
             'sacado_nome': line.partner_id.legal_name,
             'sacado_endereco': (
                 line.partner_id.street + ' ' + line.partner_id.number),
