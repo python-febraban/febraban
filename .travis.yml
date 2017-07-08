@@ -9,7 +9,13 @@ deploy:
     secure: RzMdxjSNbMZyIxAuFjbYCr0Fmg8AfC7lJceNY9L/lFVgiYqGEgv/BZyyzr/RDdbCpbdvjYdiUMTNA2u25JhzKOrw1Koq2quHbmxM/YFpfag98dtYfH6T6H7HuVCZuQ9cj5kGurzVf6fTJBQfcDyK9U+44ziU+7IQ1JUxL8CN+7bQ3JSS9XeWA8FPG5W8rXskPr71Ehybqxo6fzvQDkDdbrmqnzTzLXY5kihtRIj9R9Gi8twiRDA43fHfMIulybNiRkEO8FVbiDWuiFgLk/UF4Biu7TOKPUOWEXtk5b1JHwcHXpcM0/8Vyw17suD6OIowK2QSZYTIb+NO5f6JbqTiU8rxfEWSLUlMSvPF4Fxd/etAZLD5aHsGOY+xL3mV8SSSnV3w+IcNcxrYiyNMl6+p6DZRObVPXKQQkA4c6h5MYEbid7UFATH2axaRoytBc+kBJHfdQX5khC3fB1rAlixItw29QOM8HWt8PXsprUpsnqwYhEeDCo8FnvD1qK1iSIusG+FeVe8TDkMpGVnScweaAeG5e5LwFWGLKlM97raS8IKMbcFTUisWMmb+C5uI3PUeF6WJFZ18ee2N77VWkZ0HgSmlk0Nhxpy6ePGI24bBvVNj/zPGgveywluXgZoTOkoDkodsHNtD7AIMklLrN7TegU3heJi2fcU687pBl7cM7O0=
   provider: pypi
   user: python-febraban
-install: pip install -U tox-travis
+install:
+    - sudo locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
+    - sudo dpkg-reconfigure locales
+    - pip install pillow==3.4.2
+    - pip install -U tox-travis
+    - pip install https://github.com/python-febraban/cnab240/archive/master.zip
+    - pip install https://github.com/python-febraban/pyboleto/archive/master.zip
 language: python
 python:
 - 3.5

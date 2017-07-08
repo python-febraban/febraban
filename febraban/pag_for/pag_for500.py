@@ -29,7 +29,6 @@ import unicodedata
 from decimal import Decimal
 
 from openerp import _
-from openerp.addons.l10n_br_base.tools.misc import punctuation_rm
 from openerp.exceptions import Warning as UserError
 
 from ..cnab import Cnab
@@ -194,11 +193,11 @@ class PagFor500(Cnab):
             # TODO: Número sequencial de arquivo
             'numero_remessa': int(self.get_file_numeration()),
             'cedente_inscricao_tipo': self.inscricao_tipo,
-            'cnpj_cpf_base': int(punctuation_rm(
+            'cnpj_cpf_base': int(self.punctuation_rm(
                 self.order.company_id.cnpj_cpf)[0:8]),
-            'cnpj_cpf_filial': int(punctuation_rm(
+            'cnpj_cpf_filial': int(self.punctuation_rm(
                 self.order.company_id.cnpj_cpf)[9:12]),
-            'sufixo_cnpj': int(punctuation_rm(
+            'sufixo_cnpj': int(self.punctuation_rm(
                 self.order.company_id.cnpj_cpf)[12:14]),
             'cedente_agencia': int(self.order.mode.bank_id.bra_number),
             'cedente_conta': int(self.order.mode.bank_id.acc_number),
@@ -246,9 +245,6 @@ class PagFor500(Cnab):
         else:
             return 1
 
-    def rmchar(self, format):
-        return re.sub('[%s]' % re.escape(string.punctuation), '', format or '')
-
     def _prepare_segmento(self, line, vals):
         """
 
@@ -269,11 +265,11 @@ class PagFor500(Cnab):
             'tipo_inscricao': int(
                 self.sacado_inscricao_tipo(line.partner_id)),
             'cnpj_cpf_base_forn': int(
-                self.rmchar(line.partner_id.cnpj_cpf)[0:8]),
+                self.punctuation_rm(line.partner_id.cnpj_cpf)[0:8]),
             'cnpj_cpf_filial_forn': int(
-                self.rmchar(line.partner_id.cnpj_cpf)[9:12]),
+                self.punctuation_rm(line.partner_id.cnpj_cpf)[9:12]),
             'cnpj_cpf_forn_sufixo': int(
-                self.rmchar(line.partner_id.cnpj_cpf)[12:14]),
+                self.punctuation_rm(line.partner_id.cnpj_cpf)[12:14]),
             'nome_forn': line.partner_id.legal_name,
             'endereco_forn': (
                 line.partner_id.street + ' ' + line.partner_id.number),

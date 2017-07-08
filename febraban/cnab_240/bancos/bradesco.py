@@ -36,14 +36,14 @@ class Bradesco240(Cnab240):
         from cnab240.bancos import bradesco
         self.bank = bradesco
 
-    def _prepare_header(self):
+    def _prepare_header(self, **kwargs):
         """
 
         :param order:
         :return:
         """
 
-        vals = super(Bradesco240, self)._prepare_header()
+        vals = super(Bradesco240, self)._prepare_header(**kwargs)
         vals['servico_servico'] = 1
         return vals
 
@@ -77,8 +77,3 @@ class Bradesco240(Cnab240):
         nosso_numero = re.sub(
             '[%s]' % re.escape(string.punctuation), '', format[3:-1] or '')
         return carteira, nosso_numero, digito
-
-
-def str_to_unicode(inp_str):
-    inp_str = unicode(inp_str, "utf-8")
-    return inp_str

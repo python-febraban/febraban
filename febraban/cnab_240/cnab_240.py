@@ -25,11 +25,8 @@ import datetime
 import logging
 import re
 import string
-import time
 import unicodedata
 from decimal import Decimal
-
-from openerp.addons.l10n_br_base.tools.misc import punctuation_rm
 
 from ..cnab import Cnab
 
@@ -65,80 +62,57 @@ class Cnab240(Cnab):
         else:
             return Cnab240
 
-    @property
-    def inscricao_tipo(self):
-        # TODO: Implementar codigo para PIS/PASEP
-        if self.order.company_id.partner_id.is_company:
-            return 2
-        else:
-            return 1
+    def nosso_numero(self, format):
+        return format
 
-    def _prepare_header(self):
+    def _prepare_header(
+        self, arquivo_codigo, controle_banco,
+        cedente_agencia, cedente_agencia_dv,
+        cedente_conta, cedente_conta_dv, cedente_dv_ag_cc,
+        cedente_inscricao_numero, cedente_inscricao_tipo,
+        cedente_nome, nome_banco, servico_operacao, arquivo_sequencia,
+        arquivo_data_de_geracao=False,
+        arquivo_hora_de_geracao=False,
+        **kwargs):
         """
 
         :param:
         :return:
         """
         return {
-            'controle_banco': int(self.order.mode.bank_id.bank_bic),
-            'arquivo_data_de_geracao': self.data_hoje(),
-            'arquivo_hora_de_geracao': self.hora_agora(),
+            'controle_banco': controle_banco,
+            'arquivo_data_de_geracao':
+                arquivo_data_de_geracao or self.data_hoje(),
+            'arquivo_hora_de_geracao':
+                arquivo_hora_de_geracao or self.hora_agora(),
             # TODO: Número sequencial de arquivo
-            'arquivo_sequencia': int(self.get_file_numeration()),
-            'cedente_inscricao_tipo': self.inscricao_tipo,
-            'cedente_inscricao_numero': int(punctuation_rm(
-                self.order.company_id.cnpj_cpf)),
-            'cedente_agencia': int(
-                self.order.mode.bank_id.bra_number),
-            'cedente_conta': int(self.order.mode.bank_id.acc_number),
-            'cedente_conta_dv': (self.order.mode.bank_id.acc_number_dig),
-            'cedente_agencia_dv': self.order.mode.bank_id.bra_number_dig,
-            'cedente_nome': self.order.company_id.legal_name,
+            'arquivo_sequencia': int(arquivo_sequencia),
+            'cedente_inscricao_tipo': int(self.inscricao_tipo(
+                cedente_inscricao_numero
+            )),
+            'cedente_inscricao_numero':
+                int(self.punctuation_rm(cedente_inscricao_numero)),
+            'cedente_agencia': int(cedente_agencia),
+            'cedente_conta': int(cedente_conta),
+            'cedente_conta_dv': cedente_conta_dv,
+            'cedente_agencia_dv': cedente_agencia_dv,
+            'cedente_nome': cedente_nome,
             # DV ag e conta
-            'cedente_dv_ag_cc': (self.order.mode.bank_id.bra_acc_dig),
+            'cedente_dv_ag_cc': cedente_dv_ag_cc,
             'arquivo_codigo': 1,  # Remessa/Retorno
-            'servico_operacao': u'R',
-            'nome_banco': unicode(self.order.mode.bank_id.bank_name),
+            'servico_operacao': unicode(servico_operacao),
+            'nome_banco': unicode(nome_banco),
         }
-
-    def get_file_numeration(self):
-        numero = self.order.get_next_number()
-        if not numero:
-            numero = 1
-        return numero
-
-    def format_date(self, srt_date):
-        return int(datetime.datetime.strptime(
-            srt_date, '%Y-%m-%d').strftime('%d%m%Y'))
-
-    def nosso_numero(self, format):
-        pass
-
-    def cep(self, format):
-        sulfixo = format[-3:]
-        prefixo = format[:5]
-        return prefixo, sulfixo
-
-    def sacado_inscricao_tipo(self, partner_id):
-        # TODO: Implementar codigo para PIS/PASEP
-        if partner_id.is_company:
-            return 2
-        else:
-            return 1
-
-    def rmchar(self, format):
-        return re.sub('[%s]' % re.escape(string.punctuation), '',
-                      format or '')
 
     def _prepare_segmento(self, line):
         """
         :param line:
         :return:
         """
-        prefixo, sulfixo = self.cep(line.partner_id.zip)
+        prefixo, sulfixo = self.cep(line.sacado_cep)
 
         aceite = u'N'
-        if not self.order.mode.boleto_aceite == 'S':
+        if not line.aceite == 'S':
             aceite = u'A'
 
         # Código agencia do cedente
@@ -157,68 +131,74 @@ class Cnab240(Cnab):
         # Era cedente_agencia_conta_dv agora é cedente_dv_ag_cc
 
         return {
-            'controle_banco': int(self.order.mode.bank_id.bank_bic),
-            'cedente_agencia': int(self.order.mode.bank_id.bra_number),
-            'cedente_conta': int(self.order.mode.bank_id.acc_number),
-            'cedente_conta_dv': self.order.mode.bank_id.acc_number_dig,
-            'cedente_agencia_dv': self.order.mode.bank_id.bra_number_dig,
-            # DV ag e cc
-            'cedente_dv_ag_cc': (self.order.mode.bank_id.bra_acc_dig),
+            # TODO: Esses dados podem ser de outras filiais e contas
+            # provavelmente, então pode ser que teremos que refazer este
+            # trecho.
+            'controle_banco': self.arquivo.header.controle_banco,
+            'cedente_agencia': self.arquivo.header.cedente_agencia,
+            'cedente_conta': self.arquivo.header.cedente_conta,
+            'cedente_conta_dv': self.arquivo.header.cedente_conta_dv,
+            'cedente_agencia_dv': self.arquivo.header.cedente_agencia_dv,
+            'cedente_dv_ag_cc': self.arquivo.header.cedente_dv_ag_cc,
             'identificacao_titulo': u'0000000',  # TODO
             'identificacao_titulo_banco': u'0000000',  # TODO
-            'identificacao_titulo_empresa': line.move_line_id.move_id.name,
-            'numero_documento': line.name,
+            'identificacao_titulo_empresa': line.nosso_numero,
+            'numero_documento': line.numero_documento,
             'vencimento_titulo': self.format_date(
-                line.ml_maturity_date),
-            'valor_titulo': Decimal(str(line.amount_currency)).quantize(
+                line.data_vencimento
+            ),
+            'valor_titulo': Decimal(line.valor_documento).quantize(
                 Decimal('1.00')),
             # TODO: Código adotado para identificar o título de cobrança.
             # 8 é Nota de cŕedito comercial
-            'especie_titulo': int(self.order.mode.boleto_especie),
+            'especie_titulo': 8,  # FIXME
+                #int(self.order.mode.boleto_especie),
             'aceite_titulo': aceite,
             'data_emissao_titulo': self.format_date(
-                line.ml_date_created),
+                line.data_documento),
             # TODO: trazer taxa de juros do Odoo. Depende do valor do 27.3P
             # CEF/FEBRABAN e Itaú não tem.
             'juros_mora_data': self.format_date(
-                line.ml_maturity_date),
-            'juros_mora_taxa_dia': Decimal('0.00'),
-            'valor_abatimento': Decimal('0.00'),
+                line.data_vencimento),  # FIXME
+            'juros_mora_taxa_dia': Decimal('0.00'),  # FIXME
+            'valor_abatimento': Decimal('0.00'),  # FIXME
             'sacado_inscricao_tipo': int(
-                self.sacado_inscricao_tipo(line.partner_id)),
+                self.inscricao_tipo(line.sacado_documento)),
             'sacado_inscricao_numero': int(
-                self.rmchar(line.partner_id.cnpj_cpf)),
-            'sacado_nome': line.partner_id.legal_name,
-            'sacado_endereco': (
-                line.partner_id.street + ' ' + line.partner_id.number),
-            'sacado_bairro': line.partner_id.district,
+                self.punctuation_rm(line.sacado_documento)),
+            'sacado_nome': line.sacado_nome,
+            'sacado_endereco': line.sacado_endereco,
+            'sacado_bairro': line.sacado_bairro,
             'sacado_cep': int(prefixo),
             'sacado_cep_sufixo': int(sulfixo),
-            'sacado_cidade': line.partner_id.l10n_br_city_id.name,
-            'sacado_uf': line.partner_id.state_id.code,
-            'codigo_protesto': int(self.order.mode.boleto_protesto),
-            'prazo_protesto': int(self.order.mode.boleto_protesto_prazo),
+            'sacado_cidade': line.sacado_cidade,
+            'sacado_uf': line.sacado_uf,
+            'codigo_protesto': 1,
+                #int(self.order.mode.boleto_protesto),
+            'prazo_protesto':  1,
+                #int(self.order.mode.boleto_protesto_prazo),
             'codigo_baixa': 2,
             'prazo_baixa': 0,  # De 5 a 120 dias.
             'controlecob_data_gravacao': self.data_hoje(),
-            'cobranca_carteira': int(self.order.mode.boleto_carteira),
+            'cobranca_carteira': int(line.carteira),
         }
 
-    def remessa(self, order):
+    def remessa(self, header, lista_boletos):
         """
 
         :param order:
+
         :return:
         """
-        cobrancasimples_valor_titulos = 0
+        cobrancasimples_valor_titulos = Decimal(0.00)
 
-        self.order = order
-        self.arquivo = Arquivo(self.bank, **self._prepare_header())
-        for line in order.line_ids:
+        self.arquivo = Arquivo(self.bank, **self._prepare_header(**header))
+        for line in lista_boletos:
             self.arquivo.incluir_cobranca(**self._prepare_segmento(line))
             self.arquivo.lotes[0].header.servico_servico = 1
             # TODO: tratar soma de tipos de cobranca
-            cobrancasimples_valor_titulos += line.amount_currency
+            # TODO: Verificar se é o valor do documento ou o valor
+            cobrancasimples_valor_titulos += Decimal(line.valor_documento)
             self.arquivo.lotes[0].trailer.cobrancasimples_valor_titulos = \
                 Decimal(cobrancasimples_valor_titulos).quantize(
                     Decimal('1.00'))
@@ -226,9 +206,3 @@ class Cnab240(Cnab):
         remessa = unicode(self.arquivo)
         return unicodedata.normalize(
             'NFKD', remessa).encode('ascii', 'ignore')
-
-    def data_hoje(self):
-        return (int(time.strftime("%d%m%Y")))
-
-    def hora_agora(self):
-        return (int(time.strftime("%H%M%S")))
