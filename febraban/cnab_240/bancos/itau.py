@@ -38,7 +38,7 @@ class Itau240(Cnab240):
         :return:
         """
         super(Cnab240, self).__init__()
-        from cnab240.bancos import itau
+        from cnab.bancos import itau
         self.bank = itau
 
     def _prepare_header(self):

@@ -33,7 +33,7 @@ class Bradesco400(Cnab400):
 
     def __init__(self):
         super(Cnab400, self).__init__()
-        from cnab240.bancos import bradesco_cobranca_400
+        from cnab.bancos import bradesco_cobranca_400
         self.bank = bradesco_cobranca_400
         self.controle_linha = 2
 

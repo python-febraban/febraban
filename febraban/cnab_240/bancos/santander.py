@@ -36,7 +36,7 @@ class Santander240(Cnab240):
         :return:
         """
         super(Cnab240, self).__init__()
-        from cnab240.bancos import santander
+        from cnab.bancos import santander
         self.bank = santander
 
     def _prepare_header(self):

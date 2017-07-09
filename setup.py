@@ -14,7 +14,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'pyboleto',
-    'cnab240',
+    'cnab==1.0.0',
     # TODO: put package requirements here
 ]
 

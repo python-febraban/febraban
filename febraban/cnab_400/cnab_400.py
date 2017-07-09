@@ -31,7 +31,7 @@ from ..cnab import Cnab
 
 _logger = logging.getLogger(__name__)
 try:
-    from cnab240.tipos import ArquivoCobranca400
+    from cnab.tipos import ArquivoCobranca400
 except ImportError as err:
     _logger.debug = (err)
 

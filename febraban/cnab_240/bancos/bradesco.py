@@ -33,7 +33,7 @@ class Bradesco240(Cnab240):
 
     def __init__(self):
         super(Cnab240, self).__init__()
-        from cnab240.bancos import bradesco
+        from cnab.bancos import bradesco
         self.bank = bradesco
 
     def _prepare_header(self, **kwargs):

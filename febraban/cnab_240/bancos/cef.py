@@ -32,7 +32,7 @@ class Cef240(Cnab240):
 
     def __init__(self):
         super(Cnab240, self).__init__()
-        from cnab240.bancos import cef
+        from cnab.bancos import cef
         self.bank = cef
 
     def _prepare_header(self):
@@ -52,7 +52,7 @@ class Cef240(Cnab240):
         # Não pode pegar comentário da payment_line.
         vals['reservado_cedente_campo23'] = u'REMESSA TESTE'
         # reservado_banco_campo22 não é required. Código atualizado na
-        # biblioteca cnab240
+        # biblioteca cnab
         vals['data_credito_hd_lote'] = 15052015
 
         return vals
